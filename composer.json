@@ -1,0 +1,20 @@
+{
+    "name": "mrsc-client/mrsc-client-php",
+    
+    "description": "PHP client library for interacting with MarksmanRSC.com",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+        "name": "Jason Thistlethwaite",
+        "email": "jasont@marksmanrsc.com",
+        "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/MarksmanRSC/mrscClient-php.git"
+        }
+    ] 
+
+}
