@@ -1,5 +1,5 @@
 {
-    "name": "mrsc-client/mrsc-client-php",
+    "name": "mrscClient/mrscClient-php",
     
     "description": "PHP client library for interacting with MarksmanRSC.com",
     "license": "BSD-3-Clause",
