@@ -10,24 +10,80 @@
 namespace mrscClient;
 
 class request extends mrscClient {
+    public $uri = "/?section=request&action=makeRequest";
+    
+    /**
+     * Unique string to reference your order. Can be used as an RMA number
+     * @var string
+     */
     public $order_id;
+    
+    /**
+     * Specify what kind of request this is.
+     * 
+     * 
+     * 
+     * @var string
+     */
     public $requestType;
-    public $items;
+    
+    /**
+     * Array of items contained in request.
+     * @see returnItem
+     * @var array
+     */
+    public $items = array();
+    
+    /**
+     * Comments or extra instructions for your request
+     * @var string
+     */
     public $comment;   
     
     public function makeRequest()
     {
-        $this->uri = "/?section=request&action=makeRequest&order_id=". $this->order_id. "&requestType={$this->requestType}".
-            "&comment=". urlencode($this->comment);
+        $this->uri = "/?section=request&action=makeRequest";
             
-        $this->body["items"] = $this->items;
+            
+        // $this->body["items"] = $this->items;
         
-        echo $this->send();
+        return $this->send();
 
     }
     
+    /**
+     * Adds an item to a request
+     * @var returnItem
+     */
     public function addItem(returnItem $returnItem) {
         $this->items[] = $returnItem;
+    }
+    
+    /**
+     * Add items contained in an array to the request
+     * @param Array $itemList
+     * 
+     * Example:
+     * 
+     * $itemList = array(
+     *  0 => array(
+     *      "sku" => 'w2edq3f',
+     *      "product_name" => "Some product"
+     *      ),
+     * 1 => array(
+     *      "sku" => "sdqwewefrg",
+     *      "product_name" => "Red flashlight",
+     *      "return_reason" => "Defective"
+     *      )
+     * );
+     * 
+     */
+    public function addItems(Array $itemList) {
+        
+        foreach ($itemList as $itemData) {
+            $this->items[] = new returnItem($itemData);
+        }
+        
     }
 
 }

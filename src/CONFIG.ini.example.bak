@@ -1,0 +1,4 @@
+endpoint = 'http://localhost:8081/api.php';
+testMode = false;
+mrscAccessCode = 99999;
+secretKey = d7bf20c7ac00be2a8bed1e2414633388f72c88958579b4834a2705f043f44243;

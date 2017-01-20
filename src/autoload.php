@@ -11,7 +11,7 @@ namespace mrscClient;
 
 function autoload($class_name)
 {
-    echo "Looking for $class_name\n";
+    // echo "Looking for $class_name\n";
     $parts = str_replace('\\', '/', $class_name);
     
     $dir = dirname(__FILE__). '/';
@@ -23,3 +23,5 @@ function autoload($class_name)
 
 
 spl_autoload_register("mrscClient\autoload");
+
+define("MRSC_CLIENT_CONFIG", dirname(__FILE__) . DIRECTORY_SEPARATOR . 'CONFIG.ini');

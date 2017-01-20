@@ -7,14 +7,10 @@
  * Copyright 2017 Marksman RSC
  * 
  */
-namespace mrscClient;
-
-class shippingAddress {
-    public $name;
-    public $street1;
-    public $street2;
-    public $city;
-    public $province;
-    public $postalCode;
-    public $country;
-} 
+ 
+class shipmentItem
+{
+    public $itemNo;
+    public $sku;
+    public $quantity;
+}
