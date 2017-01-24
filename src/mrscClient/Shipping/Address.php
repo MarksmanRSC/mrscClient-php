@@ -69,13 +69,22 @@ class Address {
     
     public function __construct(Array $address = null) {
         if ($address != null) {
+            
             foreach ($address as $property => $value) {
-                if (property_exists(get_class($this), $property)) {
+                if (property_exists($this, $property)) {
                     $this->$property = $value;
                 } else {
-                    throw new Exception("Invalid address property '$property'");
+                    throw new \Exception("Invalid property '$property'");
                 }
             }
+            
+            // foreach ($address as $property => $value) {
+                // if (property_exists( get_class($this), $property) ) {
+                    // $this->$property = $value;
+                // } else {
+                    // throw new \Exception(get_class($this). " : Invalid address property '$property' in address ". print_r($address, true));
+                // }
+            // }
         }
     }
 } 

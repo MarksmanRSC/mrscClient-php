@@ -2,6 +2,8 @@
 
 A PHP client for the Marksman RSC API. Marksman RSC is a leading reverse logistics provider for ecommerce sellers. 
 
+[TOC]
+
 ## What Can the API Do?
 
 The Marksman RSC API can be used to integrate your existing inventory management, web store, or retail operations with Marksman RSC. Using our API you can:
@@ -852,9 +854,385 @@ Must specify one of the other:
 "query": "\/api.php?mrscAccessCode=20025&timestamp=1484948459&signature=ecd6c0ddf293be9b47fbf63cf6485d1c2fceaef22832ede43088a98377a4b7cf",
 "method": "POST"
 ```
+### makeRequest
+
+This action allows you to place an inbound request in our system, letting us know you are sending items for us to service.
+
+**Sample Request:**
+
+```json
+"action": "makeRequest"
+"order_id": "my order is nice 25",
+"requestType": "EZ",
+"items": [
+    {
+        "sku": "somekindathinga",
+        "upc": null,
+        "asin": null,
+        "product_name": "Not a flashlight",
+        "return_reason": "Wrong item",
+        "quantity": 1,
+        "serial_number": null,
+        "action": "add"
+    },
+    {
+        "sku": "something-else",
+        "upc": null,
+        "asin": null,
+        "product_name": "Blue flashlight",
+        "return_reason": "Defective",
+        "quantity": 2,
+        "serial_number": null,
+        "action": "add"
+    },
+    {
+        "sku": "something-else",
+        "upc": null,
+        "asin": null,
+        "product_name": null,
+        "return_reason": null,
+        "quantity": 1,
+        "serial_number": "1337_555",
+        "action": "add"
+    }
+],
+"comment": "I have changed my comment",
+"update": false
+```
+#### Parameters:
+
+##### order_id
+
+This is a unique identifier for your request. If left blank we will randomly generate one for you.
+
+##### requestType
+
+The request type indicates the type of work you want performed on the items you are shipping, and indicates to us the origin of the items so we can process them more efficiently.
+
+Valid values:
+
+* **EZ** - indicates the items are returned merchandise you want us to inspect and test
+* **FBA** - indicates the items are returned merchandise sold through Amazon fulfillment and being shipped to us from Amazon
+* **FBM** - indicates the items are returned merchandise sold through Amazon, but fulfilled by a 3rd party and are being shipped to us from the end-buyer
+* **PREP** - Indicates the items are new merchandise you will need prepped for sale through Amazon or another market place.
+
+*It is important you select the correct type of request for best service. Selecting the wrong type of request for your items can result in significant delays in service.*
+
+##### comment
+
+Optional field; allows you to specify extra instructions or comments about your request. These comments will be visible to our receiving and refurbishment teams.
+
+*Please try to be clear and succinct about any special requirement you have.*
+
+##### items
+
+Items is an array of objects representing the items you are sending in this request. Not all fields are required.
+
+
+
+**Example Response:**
+
+```json
+"status": "SUCCESS",
+"apiVersion": "0.2",
+"timestamp": "2017-01-23T11:59:03-05:00",
+"mrscAccessCode": "20025",
+"success": true,
+"message": {
+    "id": 3126,
+    "company_id": 0,
+    "user_id": "62",
+    "request_date": "2017-01-23 11:59:03",
+    "modify_date": null,
+    "order_id": "my order is nice 25-0",
+    "request_status": "PENDING",
+    "return_reason": null,
+    "request_type": "EZ",
+    "items_received": 0,
+    "items_total": 4,
+    "fee_dollars": 0,
+    "fee_cents": 0,
+    "comment": null,
+    "customer_notes": "I have changed my comment",
+    "marksman_ships": false,
+    "skuInformationNeeded": [
+        "somekindathinga",
+        "something-else"
+    ]
+},
+"error": null,
+"query": "\/api.php\/?section=request&action=makeRequest&mrscAccessCode=20025&timestamp=1485190743&signature=9361a5cc9545b49d494f9674b066ff76b0ecb4f083aeb04438c009383433fae4",
+"method": "POST"
+```
 ## Shipping
 
-Shipping allows you to get shipping rates, purchase shipping labels, and check status of packages.
+Shipping allows you to get shipping rates, purchase shipping labels, and check status of packages. We use GoShippo as our backend provider for labels. Using our shipping API you can take advantage of our discounted FedEx and USPS rates.
+
+### getRates
+
+Call this to set up a shipment and get available rates.
+
+**Example Request:**
+
+```json
+"destination_address": {
+    "name": "Test",
+    "street_address1": "1726 Viking Avenue",
+    "street_address2": " ",
+    "city": "Orrville",
+    "province": "OH",
+    "postal_code": 44667,
+    "country": "US",
+    "email": null,
+    "phone": "513-771-8777"
+},
+"from_address": {
+    "name": "Marksman 20015",
+    "street_address1": "571 Northland Blvd",
+    "street_address2": " ",
+    "city": "Cincinnati",
+    "province": "OH",
+    "postal_code": 45240,
+    "country": "US",
+    "email": null,
+    "phone": "513-771-8777"
+},
+"insurance_required": false,
+"insurance_amount": 0,
+"signature_required": "no",
+"saturday_delivery": false,
+"packages": [
+    {
+        "length": 4,
+        "height": 4.5,
+        "width": 8,
+        "weight": 2,
+        "distance_unit": "in",
+        "mass_unit": "lb"
+    }
+],
+"testMode": false,
+"mrscAccessCode": "20025",
+"uri": "\/?section=shipping&action=getRates",
+"debug": true
+```
+#### Parameters:
+
+**destination_address** and **from_address**
+
+Both of these parameters are required and require the same data. None of these fields can be left blank (this is a temporary limitation on our backend).
+
+The fields should be self-explanatory aside from **email** and **phone.** You must provide an email address and a phone number to contact in the event of delivery problems. This is for the carrier to call you our your recipient about delivery issues.
+
+If you do not provide this information it will be auto-completed using the email address and phone number you have on file with us. You can locate and update this information on our website by going to Your Account -> Update Your Account.
+
+**insurance_required** (Boolean; true or false)
+
+Select whether or not you need to purchase insurance for this shipment.
+
+**insurance_amount** (float)
+
+Set to the amount of insurance for the shipment if **insurance_required**. This is a float in USD.
+
+**signature_required** (ENUM: "no", "standard", "adult"; default to "no")
+
+Whether or not your require your package to be signed for.
+
+*no:* No signature will be required
+
+*standard*: A signature will be required
+
+*adult*: Carrier will verify person who signs for package is an adult
+
+**saturday_delivery**: (Boolean; true of false)
+
+Whether or not your package can be delivered on a saturday. Defaults to false.
+
+**packages** (array)
+
+Packages is an array of packages included in this shipment. Each package must have the following information:
+
+        "length": 4,
+        "height": 4.5,
+        "width": 8,
+        "weight": 2,
+        "distance_unit": "in",
+        "mass_unit": "lb"
+*length, height, width, and weight* (float)
+
+*distance_unit*
+
+Defaults to "in" for inches. Allowed values:
+
+* in
+* cm
+* ft
+* mm
+* m
+* yd
+
+*mass_unit*
+
+Defaults to "lb". Allowed values:
+
+- lb
+- g
+- oz
+- kg
+
+
+
+A successful response will look as follows:
+
+**Example Response:**
+
+```json
+"status": "SUCCESS",
+"apiVersion": "0.2",
+"timestamp": "2017-01-23T11:00:41-05:00",
+"mrscAccessCode": "20025",
+"success": true,
+"message": [
+    [
+        {
+            "object_state": "VALID",
+            "object_id": "029d4a0e4f21493e9263c3d6652001c8",
+            "provider": "USPS",
+            "provider_image": "https:\/\/shippo-static.s3.amazonaws.com\/providers\/75\/USPS.png",
+            "servicelevel_name": "Priority Mail Express",
+            "days": 2,
+            "arrives_by": null,
+            "duration_terms": "Overnight delivery to most U.S. locations.",
+            "amount": "25.94",
+            "signature": "01b3955eb8514c93da0bd3a1d06f3ffa386445992cbdac3ea2efdbb8893e2f92",
+            "shipment_id": 72
+        },
+        {
+            "object_state": "VALID",
+            "object_id": "dc1bb2435f5d40fd8725ed41ec51b992",
+            "provider": "USPS",
+            "provider_image": "https:\/\/shippo-static.s3.amazonaws.com\/providers\/75\/USPS.png",
+            "servicelevel_name": "Priority Mail",
+            "days": 2,
+            "arrives_by": null,
+            "duration_terms": "Delivery within 1, 2,\u00a0or 3 days\u00a0based on where your package started and where it\u2019s being sent.",
+            "amount": "7.00",
+            "signature": "ff7b152858605137e0b7d006f180285002afa544581359d9991f2c482c495362",
+            "shipment_id": 72
+        },
+        {
+            "object_state": "VALID",
+            "object_id": "8e1c8680af294e22980148083bb44ec7",
+            "provider": "USPS",
+            "provider_image": "https:\/\/shippo-static.s3.amazonaws.com\/providers\/75\/USPS.png",
+            "servicelevel_name": "Parcel Select",
+            "days": 7,
+            "arrives_by": null,
+            "duration_terms": "Delivery in 2 to 8 days.",
+            "amount": "7.26",
+            "signature": "dde88bfd30e9015d2e42c6f700710e605b6cd5675345d95681706b8fdcb14f7e",
+            "shipment_id": 72
+        }
+    ]
+],
+"error": null,
+"query": "\/api.php\/?section=shipping&action=getRates&mrscAccessCode=20025&timestamp=1485187241&signature=a17d74cab59cd0a607f9f4f6814ce34433bccc8e1d19d52bc967c0efde78e056",
+"method": "POST"
+```
+The **message** section of the response will contain an array of available shipping rates for each package in your request. The example above is for a shipment including only one package.
+
+#### Rate Objects
+
+There will be an array of rate objects for each package. If you have used goshippo before you may recognize these, as they are very similar.
+
+You will purchase rates through our API by passing the rates you wish to purchase. You must not modify these objects.
+
+**object_state**
+
+Either "VALID" or "INVALID". A state of "INVALID" generally means the address information you've provided is not valid.
+
+**provider**
+
+This is the name of the shipping provider
+
+**provider_image**
+
+This is a url to an image or logo for the provider.
+
+**servicelevel_name**
+
+This is the provider's name for the type of service the rate will purchase, such as "Priority Mail", "First Class Mail", etc.
+
+**days**
+
+This is how long the provider estimates it will take to deliver your package at this rate.
+
+**duration_terms**
+
+This is a text explanation of the delivery terms for the rate
+
+**amount**
+
+This is how much the label will cost in USD.
+
+**signature**
+
+This is our internal signature of the rate.
+
+**shipment_id**
+
+This is used for our internal processes
+
+### purchase
+
+This action allows you to purchase a shipping rate you've received through **getRates**. You simply pass an array of rates you wish to purchase. You do not need to provide an address or other information, as this is stored via the **shipment_id** parameter.
+
+```json
+"action": "purchase",
+"mrscAccessCode": "20025",
+"rates": [
+    {
+        "object_state": "VALID",
+        "object_id": "b1066812c6b341d8a56722b96358d6ae",
+        "provider": "USPS",
+        "provider_image": "https:\/\/shippo-static.s3.amazonaws.com\/providers\/75\/USPS.png",
+        "servicelevel_name": "Priority Mail",
+        "days": 2,
+        "arrives_by": null,
+        "duration_terms": "Delivery within 1, 2,\u00a0or 3 days\u00a0based on where your package started and where it\u2019s being sent.",
+        "amount": "7.00",
+        "signature": "8be5fedb092b6bea7134c468f2b799d364783b05c8d5c42af1dbec66cdc8580f",
+        "shipment_id": 74
+    }
+]
+```
+A successful purchase will look like this:
+
+
+
+```json
+"status": "SUCCESS",
+"apiVersion": "0.2",
+"timestamp": "2017-01-23T11:49:38-05:00",
+"mrscAccessCode": "20025",
+"success": true,
+"message": [
+    {
+        "status": "SUCCESS",
+        "tracking_number": "9205590164917308211689",
+        "total": "7.00",
+        "file_id": 3195
+    }
+],
+"error": null,
+"query": "\/api.php\/?section=shipping&action=purchase&mrscAccessCode=20025&timestamp=1485190178&signature=fed372685c61ce8051d87304d1b2c9a27f5fb0433508d6eb4361b0da473fb492",
+"method": "POST"
+```
+The message portion of the response will include an array of objects each detailing the label purchased. You will see the tracking number and total price, as well as a **file_id** field.
+
+You can use the **file_id** to associate the shipping label with a request in our system, or download it through the **user** API section with the action **getFile**.
+
+Your shipping label is also automatically saved under Your Account -> Your Files on our website. You can download it through your web browser.
 
 ## User
 

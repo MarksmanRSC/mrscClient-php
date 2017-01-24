@@ -57,6 +57,8 @@ $shippingPurchase->addPackage( new Package(
  */
 $response = $shippingPurchase->getRates();
 
+// print_r($response); exit;
+
 $rates = $response->message;
 
 $purchaseRates = array();
