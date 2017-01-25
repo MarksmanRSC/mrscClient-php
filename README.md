@@ -745,6 +745,28 @@ Specify any of the following parameters to update a matching, existing template:
 
 Request allows you to place requests for service, generate outbound shipments, and check the status of requests placed with us.
 
+### addItems [internal]
+
+This function is currently only accessible internally.
+
+#### Parameters:
+
+##### order_id - The order_id of the request
+
+**request_id** - Internal id of the request
+
+##### force - boolean
+
+**items** array of item numbers
+
+This action will take the given item numbers and add them to the specified request. This will fail if their is an item or request ownership issue or the items are in invalid conditions for the request.
+
+Passing **force=true** ignores validation.
+
+If adding items to an incoming request the incoming box of the item will be set to null. If adding items to an outgoing request the outgoing_box_id of the items will be set to null.
+
+
+
 ### getRequest
 
 Returns information about a request in our system, including all products in the request.
@@ -962,6 +984,154 @@ Items is an array of objects representing the items you are sending in this requ
 },
 "error": null,
 "query": "\/api.php\/?section=request&action=makeRequest&mrscAccessCode=20025&timestamp=1485190743&signature=9361a5cc9545b49d494f9674b066ff76b0ecb4f083aeb04438c009383433fae4",
+"method": "POST"
+```
+### createShipment
+
+This is used to create an outbound shipment from our facility. This is roughly the same as going to Inventory -> Ship Refurbished Items on our website.
+
+Each outbound shipment consists of:
+
+#### order_id
+
+An unique identifier for your order, such as the Amazon or eBay order id. If this isn't specified our system will generate one for you.
+
+#### requestType
+
+This should always be "OUTGOING" at this point in time, but in the future this will be used to indicate different types of outgoing requests needing different kinds of services.
+
+#### comment
+
+A text comment including any special shipping or packing instructions.
+
+#### items
+
+An array of items you want to have shipped out. Each element of the array must include either a **sku** and **quantity** or an item number for the specific item you want to ship.
+
+#### Example Request:
+
+```json
+"order_id": "102-1334441-555",
+"update": false,
+"requestType": "OUTGOING",
+"comment": "Please pack this shipment on a pallet.",
+"items": [
+  {
+    "sku": "testsku-125",
+    "quantity": 5
+  },
+  {
+    "item_no": '10009875'
+  }
+]
+
+```
+The above would create an outbound request with the order id 102-1334441-555 containing the specific item *10009875* and a total of 5 items with the sku *testsku-125*
+
+The response to a successfully created request looks like this:
+
+```json
+"status": "SUCCESS",
+"apiVersion": "0.2",
+"timestamp": "2017-01-25T14:34:51-05:00",
+"mrscAccessCode": "20025",
+"success": true,
+"message": {
+    "id": 3131,
+    "company_id": 0,
+    "user_id": "62",
+    "request_date": "2017-01-25 14:34:51",
+    "modify_date": null,
+    "order_id": "OUTGOING-719-995-354-587",
+    "request_status": "PENDING",
+    "return_reason": null,
+    "request_type": "OUTGOING",
+    "items_received": 0,
+    "items_total": 5,
+    "fee_dollars": 0,
+    "fee_cents": 0,
+    "comment": null,
+    "customer_notes": "Please place fliers with my logo inside all packages. Testing update.",
+    "marksman_ships": false,
+    "items": [
+    	{
+          "iproduct_id": "11645",
+          "ASIN": null,
+          "FNSKU": null,
+          "iproduct_name": "testsku-125",
+          "request_id": "3128",
+          "outgoing_request_id": "3131",
+          "itemNo": null,
+          "company_id": null,
+          "user_id": "62",
+          "checkin_date": "2017-01-25 14:33:19",
+          "box": null,
+          "outgoing_box_id": null,
+          "Item_Condition": "16",
+          "Serial Number": null,
+          "itemComment": null,
+          "consignment": "0",
+          "location": null,
+          "merchant_sku": "testsku-125",
+          "serviceLevel": "2",
+          "product_id": "303342",
+          "gproduct_name": "testsku-125",
+          "product_detail_link": null,
+          "parentASIN": null,
+          "dimension_height": null,
+          "dimension_length": null,
+          "dimension_width": null,
+          "dimension_unit": null,
+          "weight": null,
+          "shipping_weight": null,
+          "weight_unit": null,
+          "product_picture": null,
+          "upc": null,
+          "ean": null,
+          "product_category": null,
+          "marksman_category": "1",
+          "List Price": "0",
+          "New Price": "0",
+          "Used Price": "0",
+          "Brand": null,
+          "Model": null,
+          "Marksman_Category_Name": "Uncategorized",
+          "Marksman_Category_Description": "Products that have no category assigned",
+          "Marksman_Category_Dollars": null,
+          "Marksman_Category_Cents": null,
+          "inspection": "1",
+          "fullService": "0",
+          "Condition_Id": "16",
+          "Condition_Name": "New",
+          "Condition_Description": "A brand-new, unused, unopened item in its original packaging, with all original packaging materials$
+          "Condition_Final": "1",
+          "Approval_Required": "0",
+          "consignment_modifier": "0.00",
+          "discount": "0.00",
+          "Sale Price": "0.00",
+          "SKU": null
+    	}
+    	....
+        ]
+     },
+     
+
+```
+
+
+You will notice the response is generally the same as the **getRequest** call. If any errors are encountered your request will *not* be created, and the **errors** response section will have a description of the problem.
+
+If you attempt to create an outbound shipment which includes items unavailable for shipping you will get a response like this:
+
+```json
+"status": "FAILURE",
+"apiVersion": "0.2",
+"timestamp": "2017-01-25T14:19:49-05:00",
+"mrscAccessCode": "20025",
+"success": false,
+"message": null,
+"error": "Item not found: SKU testsku-125 not found.",
+"query": "\/api.php\/?section=request&action=createShipment&comment=Please+place+fliers+with+my+logo+inside+all+packages.+Testing+update.&mrscAccessCode=20025&timestamp=1485371989&signature=c318e4ff06998417449c24277fc195149f7ace2d0777fd073f7252255be79d92",
 "method": "POST"
 ```
 ## Shipping
@@ -1186,6 +1356,10 @@ This is used for our internal processes
 ### purchase
 
 This action allows you to purchase a shipping rate you've received through **getRates**. You simply pass an array of rates you wish to purchase. You do not need to provide an address or other information, as this is stored via the **shipment_id** parameter.
+
+**Optional Parameter**: request_id
+
+If you pass request_id and it matches the internal id of an already existing OUTGOING shipment (created through the website or with **createShipment** the purchased label will be automatically attached to that request).
 
 ```json
 "action": "purchase",
