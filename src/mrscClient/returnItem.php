@@ -75,6 +75,17 @@ class returnItem
      */
     public $action = 'add';
 
+
+    /**
+     * @var int Level of service for item; Only matters for returns
+     *
+     * 2 - Full service
+     * 1 - Inspection only
+     * 0 - Receive + any specifically requested services
+     *
+     */
+    public $serviceLevel = 2;
+
     /**
      * Can be passed an array of property => value at initialization
      * @throws Exception on invalid properties

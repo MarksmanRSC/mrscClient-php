@@ -612,19 +612,21 @@ Search is an associate array of columns to check against values. It is a limited
 
 Example:
 
-    "mrscAccessCode": "20025",
-    "body": {
-        "section": "item",
-        "action": "getInventory",
-        "options": {
-            "search": {
-                "Condition_Name": [
-                    "LIKE",
-                    "Refurb"
-                ]
-            }
+```json
+"mrscAccessCode": "20025",
+"body": {
+    "section": "item",
+    "action": "getInventory",
+    "options": {
+        "search": {
+            "Condition_Name": [
+                "LIKE",
+                "Refurb"
+            ]
         }
     }
+}
+```
 Each search term column name, followed by an operator, and a value. The contents of the returned columns will be compared against the value using the specified operator.
 
 Allowed operators include:
@@ -1410,4 +1412,12 @@ Your shipping label is also automatically saved under Your Account -> Your Files
 
 ## User
 
-User allows you to pull various reports, such as financial/billing statements about your account.
+User section allows access to various billing functionality, reports, uploaded files, and other things that don't directly fit in another section.
+
+### ping
+
+This action takes no parameters. It simply generates am empty response to verify the API endpoint is live and that you are successfully authenticated.
+
+### billUser [internal]
+
+This is an internal API function used to apply fees or refunds to accounts.
