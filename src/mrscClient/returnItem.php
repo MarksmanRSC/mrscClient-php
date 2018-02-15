@@ -17,6 +17,10 @@ namespace mrscClient;
 class returnItem
 {
 
+    const SERVICE_FULL_SERVICE = 2;
+    const SERVICE_INSPECTION = 1;
+    const SERVICE_RECEIVE_ONLY = 0;
+
     /**
      * Your unique SKU for this product. Max 40 characters.
      * @var string
@@ -35,6 +39,16 @@ class returnItem
      * @var string
      */
     public $asin;
+
+    /**
+     * Amazon FNSKU (FBA Label Barcode)
+     *
+     * If this is provided along with ASIN we are able to generate FBA labels for your items without you
+     * needing to upload an attachment containing them.
+     *
+     * @var string
+     */
+    public $fnsku;
 
     /**
      * Descriptive name for this product
