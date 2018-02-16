@@ -790,94 +790,145 @@ Must specify one of the other:
     }
 ##### Example Response:
 
-   "status": "SUCCESS",
-
 ```json
-"apiVersion": "0.2",
-"timestamp": "2017-01-20T16:40:59-05:00",
-"mrscAccessCode": "20025",
-"success": true,
-"message": {
-    "id": "3078",
-    "company_id": "0",
-    "user_id": "62",
-    "request_date": "2017-01-15 13:23:26",
-    "modify_date": "2017-01-15 13:23:26",
-    "order_id": "170115STL",
-    "request_status": "PENDING",
-    "return_reason": null,
-    "request_type": "FBA",
-    "items_received": "0",
-    "items_total": "1",
-    "fee_dollars": "0",
-    "fee_cents": "0",
-    "comment": null,
-    "customer_notes": null,
-    "marksman_ships": false,
-    "items": [
-        {
-            "iproduct_id": "11628",
-            "ASIN": "B01DSSLJ3M",
-            "FNSKU": "X0019TFNPT",
-            "iproduct_name": "MSI GP72 Leopard Pro-495 17.3\\\" GAMING LAPTOP NOTEBOOK GTX960M i7-6700HQ 16GB 256GB M.2 SATA WINDOWS 10 USB TYPE-C",
-            "request_id": "3078",
-            "outgoing_request_id": null,
-            "itemNo": null,
-            "company_id": null,
-            "user_id": "62",
-            "checkin_date": null,
-            "box": null,
-            "outgoing_box_id": null,
-            "Item_Condition": "1",
-            "Serial Number": null,
-            "itemComment": null,
-            "consignment": "0",
-            "location": null,
-            "merchant_sku": "JS-FQMV-2CEE",
-            "serviceLevel": "2",
-            "product_id": "303229",
-            "gproduct_name": "MSI GP72 Leopard Pro-495 17.3\\\" GAMING LAPTOP NOTEBOOK GTX960M i7-6700HQ 16GB 256GB M.2 SATA WINDOWS 10 USB TYPE-C",
-            "product_detail_link": "https:\/\/www.amazon.com\/MSI-GP72-Leopard-NOTEBOOK-i7-6700HQ\/dp\/B01DSSLJ3M%3Fpsc%3D1%26SubscriptionId%3DAKIAIKRYDR3R75D2V3DQ%26tag%3Dcropcroprole%26linkCode%3Dxm2%26camp%3D2025%26creative%3D165953%26creativeASIN%3DB01DSSLJ3M",
-            "parentASIN": "B01HTBB7XQ",
-            "dimension_height": "3.7",
-            "dimension_length": "23",
-            "dimension_width": "15",
-            "dimension_unit": "INCHES",
-            "weight": null,
-            "shipping_weight": "10.5",
-            "weight_unit": "POUNDS",
-            "product_picture": "https:\/\/images-na.ssl-images-amazon.com\/images\/I\/418GuWn6IGL._SL75_.jpg",
-            "upc": "824142128633",
-            "ean": "0824142128633",
-            "product_category": "14806",
-            "marksman_category": "1",
-            "List Price": "0",
-            "New Price": "117517",
-            "Used Price": "0",
-            "Brand": "MSI",
-            "Model": "GP72 LEOPARD PRO-495",
-            "Marksman_Category_Name": "Uncategorized",
-            "Marksman_Category_Description": "Products that have no category assigned",
-            "Marksman_Category_Dollars": null,
-            "Marksman_Category_Cents": null,
-            "inspection": "1",
-            "fullService": "0",
-            "Condition_Id": "1",
-            "Condition_Name": "Refurb Pending",
-            "Condition_Description": "Product has not yet begun processing. It may still be in the mail to Marksman",
-            "Condition_Final": "0",
-            "Approval_Required": "1",
-            "consignment_modifier": "0.00",
-            "discount": "0.00",
-            "Sale Price": "0.00",
-            "SKU": null
-        }
-    ]
-},
-"error": null,
-"query": "\/api.php?mrscAccessCode=20025&timestamp=1484948459&signature=ecd6c0ddf293be9b47fbf63cf6485d1c2fceaef22832ede43088a98377a4b7cf",
-"method": "POST"
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-02-15T20:17:49-05:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "id": "10619",
+        "company_id": "0",
+        "user_id": "1",
+        "request_date": "2018-02-15 20:17:49",
+        "modify_date": null,
+        "order_id": "EZ538-090-981-829",
+        "request_status": "PENDING",
+        "return_reason": null,
+        "request_type": "EZ",
+        "items_received": "0",
+        "items_total": "7",
+        "fee_dollars": "0",
+        "fee_cents": "0",
+        "comment": null,
+        "customer_notes": "Bullshit\\\\n\\\\n",
+        "marksman_ships": false,
+        "pending": false,
+        "expected_packages": null,
+        "redmineTicket": null,
+        "items": [ .... ], // array of items as with getItems
+        "attachments": [
+            {
+                "id": "10081",
+                "user_id": "1",
+                "file_name": "yes.pdf",
+                "file_type": "application\/pdf",
+                "file_size": "489991",
+                "upload_date": "2018-02-15 20:17:49",
+                "is_shipping_label": "0",
+                "file_local_url": "\/home\/jason\/projects\/inventory_us\/src\/uploads\/\/a20$
+            }
+        ],
+        "packages": [
+            {
+                "id": "13025",
+                "is_outgoing": null,
+                "tracking_number": "SD3FERFEREGEGETG",
+                "company_id": "0",
+                "user_id": "1",
+                "location": null,
+                "request_id": "10619",
+                "order_id": null,
+                "received_date": "2018-02-15 20:17:49",
+                "receiver_id": null,
+                "picture_box": null,
+                "picture_shipping_label": null,
+                "picture_packing_slip": null,
+                "picture_contents": null,
+                "item_quantity": "0",
+                "estimated_weight": null,
+                "weight_pending": null,
+                "actual_weight": "5.2",
+                "checkin_user": null,
+                "checkin_date": null,
+                "length": "12",
+                "height": "8",
+                "width": "24",
+                "comment": null,
+                "alternate_lookup": null,
+                "updated_tracking": "0",
+                "disposed": "0",
+                "disposal_date": null,
+                "disposal_user": null
+            }
+        ],
+        "optional_services": [
+            {
+                "name": "REPACKAGE",
+                "extra_instructions": "Place all items in steel containers"
+            },
+            {
+                "name": "RELABEL",
+                "extra_instructions": "Do the stickers"
+            },
+            {
+                "name": "PALLETIZE",
+                "extra_instructions": "Add some things to the pallet"
+            },
+            {
+                "name": "TAKE PICTURE",
+                "extra_instructions": "If it is on fire"
+            },
+            {
+                "name": "RECORD SERIAL NUMBER",
+                "extra_instructions": "For all damaged items"
+            },
+            {
+                "name": "INSERTS",
+                "extra_instructions": "Put a new manual in each unit"
+            },
+            {
+                "name": "REPAIR AUTHORIZED",
+                "extra_instructions": "35"
+            }
+        ],
+                "skuInformationNeeded": []
+    },
+    "error": null,
+    "query": "\/api.php\/?section=request&action=getRequest&mrscAccessCode=99999&timestamp=1$
+    "method": "POST"
+}
 ```
+| Field               | Meaning                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| id                  | This is the internal database id of the newly created request. You can use this in other parts of the API to refer to the request. |
+| company_id          | This is the company which owns the request. [Not yet implemented] |
+| user_id             | Database id of the account that owns the request             |
+| request_date        | Date and time request was created                            |
+| modify_date         | The last time the request was changed. This is triggered by status updates, changes to the comment, etc. |
+| order_id            | The order id assigned to the request. **This should be recorded. It may be different than what you asked for.** This will be automatically generated if you left order_id blank when creating the request. |
+| request_status      | The status of your request. This is explained elsewhere.     |
+| return_reason       | DEPRECATED; This is a note about why the order is being sent. |
+| request_type        | The type of request it is.                                   |
+| items_received      | Integer of how many items Marksman has received already.     |
+| items_total         | Total count of items in the request.                         |
+| fee_dollars         | DEPRECATED                                                   |
+| fee_cents           | DEPRECATED                                                   |
+| comment             | Marksman's internal notes about the request.                 |
+| customer_note       | Customer-provided extra instructions                         |
+| marksman_ships      | Boolean. Indicates if Marksman is supposed to generate shipping labels for the request. |
+| pending             | Boolean. True indicates the order is a draft.                |
+| expected_packages   | How many packages expected to be received.                   |
+| redmineTicket       | If the request has a Redmine ticket to track status the ticket number will be here. |
+| skuInfomationNeeded | List of SKUs in the request which were newly created.        |
+| packages            | Array of packages in the request                             |
+| items               | Array of items in the request                                |
+| attachments         | Array of attached files                                      |
+| optional_services   | Array of optional_services for the request.                  |
+
+
+
 ### makeRequest
 
 This action allows you to place an inbound request in our system, letting us know you are sending items for us to service.
@@ -987,6 +1038,29 @@ An array containing files you want to attach to your request.
 | --------- | --------------- | -------- | ------------------------------------ |
 | file_name | String          | Y        | Name of the file                     |
 | data      | String (base64) | Y        | The file encoded as a base64 string. |
+
+##### optional_services
+
+This is an array of "optional services" requested for the request. These represent value-added services you may want performed.
+
+| Field   | Type            | Required | Usage                                                        |
+| ------- | --------------- | -------- | ------------------------------------------------------------ |
+| service | String          | Y        | Specify which optional service is required                   |
+| notes   | String; max 255 | N        | Add additional notes or requirements about how the service should be performed. |
+
+###### List of Optional Services
+
+| Service              | What it means                                                |
+| -------------------- | ------------------------------------------------------------ |
+| REPACKAGE            | Some kind repackaging is requested. This can be:             |
+| RELABEL              | Items need labels replaced or stickers removed. Please specify what labels need changed. |
+| PALLETIZE            | Used for OUTGOING requests. This instructs the shipping team to palletize the shipment. |
+| TAKE PICTURE         | Take pictures of the items if any defect or damage is found. The note should list any special instructions about when or how to take pictures. |
+| RECORD SERIAL NUMBER | Record serial numbers of all items in the request. Extra notes may give more detailed instructions, such as "Record serial number only for damaged units." |
+| INSERTS              | Specifies that some items in the request need to be combined/bundled or have other items included in the packaging. The note should either provide specific instructions or reference a file attachment which includes instructions. |
+| REPAIR AUTHORIZED    | Pre-authorize additional repairs or services that will improve the resale value of items. The note can include instructions or a dollar amount. See Appendix: Pre-Authorized Repairs for a better understanding. |
+
+
 
 #### Examples:
 
@@ -1123,141 +1197,9 @@ This example places a return handling order containing several different items w
 "update": false
 ```
 
-#### Example Response
+#### Response
 
-```json
-{
-    "status": "SUCCESS",
-    "apiVersion": "0.2",
-    "timestamp": "2018-02-15T20:17:49-05:00",
-    "mrscAccessCode": "99999",
-    "success": true,
-    "message": {
-        "id": "10619",
-        "company_id": "0",
-        "user_id": "1",
-        "request_date": "2018-02-15 20:17:49",
-        "modify_date": null,
-        "order_id": "EZ538-090-981-829",
-        "request_status": "PENDING",
-        "return_reason": null,
-        "request_type": "EZ",
-        "items_received": "0",
-        "items_total": "7",
-        "fee_dollars": "0",
-        "fee_cents": "0",
-        "comment": null,
-        "customer_notes": "Bullshit\\\\n\\\\n",
-        "marksman_ships": false,
-        "pending": false,
-        "expected_packages": null,
-        "redmineTicket": null,
-        "items": [ .... ], // array of items as with getItems
-        "attachments": [
-            {
-                "id": "10081",
-                "user_id": "1",
-                "file_name": "yes.pdf",
-                "file_type": "application\/pdf",
-                "file_size": "489991",
-                "upload_date": "2018-02-15 20:17:49",
-                "is_shipping_label": "0",
-                "file_local_url": "\/home\/jason\/projects\/inventory_us\/src\/uploads\/\/a20$
-            }
-        ],
-        "packages": [
-            {
-                "id": "13025",
-                "is_outgoing": null,
-                "tracking_number": "SD3FERFEREGEGETG",
-                "company_id": "0",
-                "user_id": "1",
-                "location": null,
-                "request_id": "10619",
-                "order_id": null,
-                "received_date": "2018-02-15 20:17:49",
-                "receiver_id": null,
-                "picture_box": null,
-                "picture_shipping_label": null,
-                "picture_packing_slip": null,
-                "picture_contents": null,
-                "item_quantity": "0",
-                "estimated_weight": null,
-                "weight_pending": null,
-                "actual_weight": "5.2",
-                "checkin_user": null,
-                "checkin_date": null,
-                "length": "12",
-                "height": "8",
-                "width": "24",
-                "comment": null,
-                "alternate_lookup": null,
-                "updated_tracking": "0",
-                "disposed": "0",
-                "disposal_date": null,
-                "disposal_user": null
-            }
-        ],
-        "optional_services": [
-            {
-                "name": "REPACKAGE",
-                "extra_instructions": "Place all items in steel containers"
-            },
-            {
-                "name": "RELABEL",
-                "extra_instructions": "Do the stickers"
-            },
-            {
-                "name": "PALLETIZE",
-                "extra_instructions": "Add some things to the pallet"
-            },
-            {
-                "name": "TAKE PICTURE",
-                "extra_instructions": "If it is on fire"
-            },
-            {
-                "name": "RECORD SERIAL NUMBER",
-                "extra_instructions": "For all damaged items"
-            },
-            {
-                "name": "INSERTS",
-                "extra_instructions": "Put a new manual in each unit"
-            },
-            {
-                "name": "REPAIR AUTHORIZED",
-                "extra_instructions": "35"
-            }
-        ],
-                "skuInformationNeeded": []
-    },
-    "error": null,
-    "query": "\/api.php\/?section=request&action=makeRequest&mrscAccessCode=99999&timestamp=1$
-    "method": "POST"
-}
-        
-```
-| Field               | Meaning                                                      |
-| ------------------- | ------------------------------------------------------------ |
-| id                  | This is the internal database id of the newly created request. You can use this in other parts of the API to refer to the request. |
-| company_id          | This is the company which owns the request. [Not yet implemented] |
-| user_id             | Database id of the account that owns the request             |
-| request_date        | Date and time request was created                            |
-| modify_date         | The last time the request was changed. This is triggered by status updates, changes to the comment, etc. |
-| order_id            | The order id assigned to the request. **This should be recorded. It may be different than what you asked for.** This will be automatically generated if you left order_id blank when creating the request. |
-| request_status      | The status of your request. This is explained elsewhere.     |
-| return_reason       | DEPRECATED; This is a note about why the order is being sent. |
-| request_type        | The type of request it is.                                   |
-| items_received      | Integer of how many items Marksman has received already.     |
-| items_total         | Total count of items in the request.                         |
-| fee_dollars         | DEPRECATED                                                   |
-| fee_cents           | DEPRECATED                                                   |
-| comment             | Marksman's internal notes about the request.                 |
-| customer_note       | Customer-provided extra instructions                         |
-| marksman_ships      | Boolean. Indicates if Marksman is supposed to generate shipping labels for the request. |
-| pending             | Boolean. True indicates the order is a draft.                |
-| expected_packages   | How many packages expected to be received.                   |
-| redmineTicket       | If the request has a Redmine ticket to track status the ticket number will be here. |
-| skuInfomationNeeded | List of SKUs in the request which were newly created.        |
+The response is the same as with get getRequest.
 
 
 
@@ -1694,3 +1636,16 @@ This action takes no parameters. It simply generates am empty response to verify
 ### billUser [internal]
 
 This is an internal API function used to apply fees or refunds to accounts.
+
+# Appendix
+
+## Pre-Authorized Repairs
+
+Pre-authorized repairs specifies an additional budget for improving item condition which may be used if the condition of an item can be significantly improved with additional work outside the normal services provided.
+
+This optional service is highly recommended for customers with high volumes of returns because it can improve the speed of service and reduce unnecessary communication.
+
+An example of this might be a returned item which is very dirty. Normally Marksman would indicate the item is dirty and wait on customer approval before cleaning the item. With a pre-authorized repair of 5 dollars Marksman would evaluate if the item can be cleaned for 5 dollars or less, and then act accordingly without further confirmation.
+
+
+
