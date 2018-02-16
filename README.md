@@ -882,7 +882,117 @@ Must specify one of the other:
 
 This action allows you to place an inbound request in our system, letting us know you are sending items for us to service.
 
-**Sample Request:**
+| Field       | Type                | Required | Usage                                                        |
+| ----------- | ------------------- | -------- | ------------------------------------------------------------ |
+| order_id    | String; max 255     | N        | A code used to identify the request. If one is not provided our system will generate a random one for you. |
+| requestType | String              | Y        | The type of order you are sending.                           |
+| items       | Array               | N        | An array of the products you are sending.                    |
+| packages    | Array               | N        | An array of packages being sent. Includes tracking numbers and dimensions |
+| attachments | Array               | N        | Array of base64 encoded files to attach to the request       |
+| comment     | String              | N        | A comment or extra instructions for the request. Will be seen by our receiving staff when the order arrives. |
+| update      | Bool; default false | Y        | If set to true and the order_id you pass matches an existing request your API call will modify the existing request. You can use this to add items, packages, or attachments as well as update the comment. |
+
+#### Parameters:
+
+##### order_id
+
+This is a unique identifier for your request. If left blank we will randomly generate one for you.
+
+##### requestType
+
+The request type indicates the type of work you want performed on the items you are shipping, and indicates to us the origin of the items so we can process them more efficiently.
+
+Valid values:
+
+- **EZ** - indicates the items are being sent for returns processing or some kind of inspection/testing.
+- **PREP** - Indicates the items are new merchandise that do not require any testing, repairs, or similar services. Use this for FBA prep, sending items for fulfillment, or sending us any kind of spare parts or materials.
+- **FORWARDING** - Indicates the order is packages you want us to receive without opening and later ship out.
+
+
+- **FBA** - indicates the items are returned merchandise sold through Amazon fulfillment and being shipped to us from Amazon.
+- **FBM** - indicates the items are returned merchandise shipping to us from your buyer.
+
+It is important you select the correct type of request for best service. Selecting the wrong type of request for your items can result in significant delays in service.
+
+**Note about FBA and FBM**: These are both hold-overs from a time Marksman only served Amazon sellers. They have the same effect as EZ and you are not required to use them. However, we ask that you do if you can because it helps us keep better metrics on inbound orders.
+
+##### comment
+
+Optional field; allows you to specify extra instructions or comments about your request. These comments will be visible to our receiving and refurbishment teams.
+
+*Please try to be clear and succinct about any special requirement you have.*
+
+##### items
+
+Items is an array of objects representing the items you are sending in the request. Each item has the following fields:
+
+| Field | Required | Usage                  |
+| ----- | -------- | ---------------------- |
+| sku   | No*      | Your SKU for the item. |
+| upc | No* | UPC for the item |
+| asin | No* | Amazon ASIN for the item |
+| product_name | No | The title of the product as it would appear for sale. This is only needed if you only provided SKU and you have never sent the item to us before. |
+| return_reason | No | A text note about why you are sending the item to us. Our refurb staff will see this note when servicing the item. **Please note**: This field should only be used for items being sent for return handling. It does nothing for FORWARDING or PREP orders. |
+| quantity | Y | How many of this item you are sending |
+| serial_number | N | The serial number of the item. Provide this if you want us to double check the serial number of the item received matches. |  |
+| serviceLevel | N | Only for returns. This selects which level of service you want. 2 = full service, 1 = visual inspection only, 0 = receive only. The default is 2. |
+
+
+*: You have to provide one of these fields but not all of them.
+
+Here is a valid example:
+
+
+```json
+	[
+        "sku": "US_7867676",
+        "quantity": 5,
+        "return_reason": "Please make sure batteries are included"
+	],
+	[
+        "sku": "US_64435454",
+        "quantity": 1,
+        "serial_number": "RD767678676",
+        "serviceLevel": 0,
+        "return_reason": "Please just check the serial number matches"
+	],
+	[
+        "upc": 07084700329,
+        "quantity": 24
+	]
+```
+
+##### packages
+
+An array telling us about what packages you are sending. This is completely optional, but has the following uses:
+
+1. When you provide tracking numbers this way you do not need to place the order_id on the outside of the package.
+2. This is useful for making FORWARDING orders.
+3. This may help us identify your delivery and speed up intake of your items.
+
+| Field           | Type            | Required | Usage                                                        |
+| --------------- | --------------- | -------- | ------------------------------------------------------------ |
+| tracking_number | String          | N        | The tracking number of the package.                          |
+| comment         | String; max 255 | N        | A note about your package. Will be stored for later and visible in your account. |
+| length          | Float           | N        | Length in inches                                             |
+| width           | Float           | N        | Width in inches                                              |
+| height          | Float           | N        | Height in inches                                             |
+| actual_weight   | Float           | N        | Weight in pounds. Do not confuse this with estimated_weight in our API. |
+
+##### attachments
+
+An array containing files you want to attach to your request.
+
+| Field     | Type            | Required | Usage                                |
+| --------- | --------------- | -------- | ------------------------------------ |
+| file_name | String          | Y        | Name of the file                     |
+| data      | String (base64) | Y        | The file encoded as a base64 string. |
+
+#### Examples:
+
+##### Return handling order
+
+This example places a return handling order containing several different items with different levels of service selected for each.
 
 ```json
 "action": "makeRequest"
@@ -897,6 +1007,7 @@ This action allows you to place an inbound request in our system, letting us kno
         "return_reason": "Wrong item",
         "quantity": 1,
         "serial_number": null,
+        "serviceLevel": 1,
         "action": "add"
     },
     {
@@ -907,6 +1018,7 @@ This action allows you to place an inbound request in our system, letting us kno
         "return_reason": "Defective",
         "quantity": 2,
         "serial_number": null,
+        "serviceLevel": 2,
         "action": "add"
     },
     {
@@ -917,42 +1029,29 @@ This action allows you to place an inbound request in our system, letting us kno
         "return_reason": null,
         "quantity": 1,
         "serial_number": "1337_555",
+        "serviceLevel": 1
         "action": "add"
     }
 ],
-"comment": "I have changed my comment",
+"comment": "Here are some extra instructions",
+"packages": [
+    [
+        "tracking_number": "....",
+        "comment": "My notes about this package",
+        "length": 18,
+        "width": 12.5,
+        "height": 4,
+        "actual_weight": 5.2
+    ]
+],
+"attachments": [
+    [
+        "file_name": "packing_slip.pdf",
+        "data": ...base64 encoded file...
+    ]
+]
 "update": false
 ```
-#### Parameters:
-
-##### order_id
-
-This is a unique identifier for your request. If left blank we will randomly generate one for you.
-
-##### requestType
-
-The request type indicates the type of work you want performed on the items you are shipping, and indicates to us the origin of the items so we can process them more efficiently.
-
-Valid values:
-
-* **EZ** - indicates the items are returned merchandise you want us to inspect and test
-* **FBA** - indicates the items are returned merchandise sold through Amazon fulfillment and being shipped to us from Amazon
-* **FBM** - indicates the items are returned merchandise sold through Amazon, but fulfilled by a 3rd party and are being shipped to us from the end-buyer
-* **PREP** - Indicates the items are new merchandise you will need prepped for sale through Amazon or another market place.
-
-*It is important you select the correct type of request for best service. Selecting the wrong type of request for your items can result in significant delays in service.*
-
-##### comment
-
-Optional field; allows you to specify extra instructions or comments about your request. These comments will be visible to our receiving and refurbishment teams.
-
-*Please try to be clear and succinct about any special requirement you have.*
-
-##### items
-
-Items is an array of objects representing the items you are sending in this request. Not all fields are required.
-
-
 
 **Example Response:**
 
@@ -988,6 +1087,180 @@ Items is an array of objects representing the items you are sending in this requ
 "query": "\/api.php\/?section=request&action=makeRequest&mrscAccessCode=20025&timestamp=1485190743&signature=9361a5cc9545b49d494f9674b066ff76b0ecb4f083aeb04438c009383433fae4",
 "method": "POST"
 ```
+##### Forwarding Order
+
+```json
+"action": "makeRequest"
+"order_id": "6516815615641511",
+"requestType": "FORWARDING",
+"items": null,
+"comment": "When these packages arrive please place new shipping label and mail out.",
+"packages": [
+    [
+        "tracking_number": "....",
+        "comment": "My notes about this package",
+        "length": 18,
+        "width": 12.5,
+        "height": 4,
+        "actual_weight": 5.2
+    ],
+    [
+        "tracking_number": "51515156156165156455315"
+    ],
+    [
+        "tracking_number": "51515615641515151561561561"
+    ],
+    [
+        "tracking_number": "84848178484181515151511515"
+    ]
+],
+"attachments": [
+    [
+        "file_name": "new_shipping_labels.pdf",
+        "data": ...base64 encoded file...
+    ]
+]
+"update": false
+```
+
+#### Example Response
+
+```json
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-02-15T20:17:49-05:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "id": "10619",
+        "company_id": "0",
+        "user_id": "1",
+        "request_date": "2018-02-15 20:17:49",
+        "modify_date": null,
+        "order_id": "EZ538-090-981-829",
+        "request_status": "PENDING",
+        "return_reason": null,
+        "request_type": "EZ",
+        "items_received": "0",
+        "items_total": "7",
+        "fee_dollars": "0",
+        "fee_cents": "0",
+        "comment": null,
+        "customer_notes": "Bullshit\\\\n\\\\n",
+        "marksman_ships": false,
+        "pending": false,
+        "expected_packages": null,
+        "redmineTicket": null,
+        "items": [ .... ], // array of items as with getItems
+        "attachments": [
+            {
+                "id": "10081",
+                "user_id": "1",
+                "file_name": "yes.pdf",
+                "file_type": "application\/pdf",
+                "file_size": "489991",
+                "upload_date": "2018-02-15 20:17:49",
+                "is_shipping_label": "0",
+                "file_local_url": "\/home\/jason\/projects\/inventory_us\/src\/uploads\/\/a20$
+            }
+        ],
+        "packages": [
+            {
+                "id": "13025",
+                "is_outgoing": null,
+                "tracking_number": "SD3FERFEREGEGETG",
+                "company_id": "0",
+                "user_id": "1",
+                "location": null,
+                "request_id": "10619",
+                "order_id": null,
+                "received_date": "2018-02-15 20:17:49",
+                "receiver_id": null,
+                "picture_box": null,
+                "picture_shipping_label": null,
+                "picture_packing_slip": null,
+                "picture_contents": null,
+                "item_quantity": "0",
+                "estimated_weight": null,
+                "weight_pending": null,
+                "actual_weight": "5.2",
+                "checkin_user": null,
+                "checkin_date": null,
+                "length": "12",
+                "height": "8",
+                "width": "24",
+                "comment": null,
+                "alternate_lookup": null,
+                "updated_tracking": "0",
+                "disposed": "0",
+                "disposal_date": null,
+                "disposal_user": null
+            }
+        ],
+        "optional_services": [
+            {
+                "name": "REPACKAGE",
+                "extra_instructions": "Place all items in steel containers"
+            },
+            {
+                "name": "RELABEL",
+                "extra_instructions": "Do the stickers"
+            },
+            {
+                "name": "PALLETIZE",
+                "extra_instructions": "Add some things to the pallet"
+            },
+            {
+                "name": "TAKE PICTURE",
+                "extra_instructions": "If it is on fire"
+            },
+            {
+                "name": "RECORD SERIAL NUMBER",
+                "extra_instructions": "For all damaged items"
+            },
+            {
+                "name": "INSERTS",
+                "extra_instructions": "Put a new manual in each unit"
+            },
+            {
+                "name": "REPAIR AUTHORIZED",
+                "extra_instructions": "35"
+            }
+        ],
+                "skuInformationNeeded": []
+    },
+    "error": null,
+    "query": "\/api.php\/?section=request&action=makeRequest&mrscAccessCode=99999&timestamp=1$
+    "method": "POST"
+}
+        
+```
+| Field               | Meaning                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| id                  | This is the internal database id of the newly created request. You can use this in other parts of the API to refer to the request. |
+| company_id          | This is the company which owns the request. [Not yet implemented] |
+| user_id             | Database id of the account that owns the request             |
+| request_date        | Date and time request was created                            |
+| modify_date         | The last time the request was changed. This is triggered by status updates, changes to the comment, etc. |
+| order_id            | The order id assigned to the request. **This should be recorded. It may be different than what you asked for.** This will be automatically generated if you left order_id blank when creating the request. |
+| request_status      | The status of your request. This is explained elsewhere.     |
+| return_reason       | DEPRECATED; This is a note about why the order is being sent. |
+| request_type        | The type of request it is.                                   |
+| items_received      | Integer of how many items Marksman has received already.     |
+| items_total         | Total count of items in the request.                         |
+| fee_dollars         | DEPRECATED                                                   |
+| fee_cents           | DEPRECATED                                                   |
+| comment             | Marksman's internal notes about the request.                 |
+| customer_note       | Customer-provided extra instructions                         |
+| marksman_ships      | Boolean. Indicates if Marksman is supposed to generate shipping labels for the request. |
+| pending             | Boolean. True indicates the order is a draft.                |
+| expected_packages   | How many packages expected to be received.                   |
+| redmineTicket       | If the request has a Redmine ticket to track status the ticket number will be here. |
+| skuInfomationNeeded | List of SKUs in the request which were newly created.        |
+
+
+
 ### createShipment
 
 This is used to create an outbound shipment from our facility. This is roughly the same as going to Inventory -> Ship Refurbished Items on our website.
