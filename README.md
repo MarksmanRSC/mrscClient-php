@@ -1072,39 +1072,33 @@ This example places a return handling order containing several different items w
 "action": "makeRequest"
 "order_id": "my order is nice 25",
 "requestType": "EZ",
+"optional_services": [
+    {
+        "service": "TAKE PICTURE",
+        "notes": "Any items with physical damage"
+    },
+    {
+        "service": "RECORD SERIAL NUMBER"
+    }
+],
 "items": [
     {
         "sku": "somekindathinga",
-        "upc": null,
-        "asin": null,
-        "product_name": "Not a flashlight",
-        "return_reason": "Wrong item",
+        "return_reason": "Wrong item; just check if it is the correct item",
         "quantity": 1,
-        "serial_number": null,
-        "serviceLevel": 1,
-        "action": "add"
+        "serviceLevel": 1
     },
     {
         "sku": "something-else",
-        "upc": null,
-        "asin": null,
-        "product_name": "Blue flashlight",
         "return_reason": "Defective",
-        "quantity": 2,
-        "serial_number": null,
-        "serviceLevel": 2,
-        "action": "add"
+        "quantity": 2,       
+        "serviceLevel": 2
     },
     {
         "sku": "something-else",
-        "upc": null,
-        "asin": null,
-        "product_name": null,
-        "return_reason": null,
         "quantity": 1,
         "serial_number": "1337_555",
         "serviceLevel": 1
-        "action": "add"
     }
 ],
 "comment": "Here are some extra instructions",
@@ -1152,9 +1146,23 @@ This example places a return handling order containing several different items w
     "comment": null,
     "customer_notes": "I have changed my comment",
     "marksman_ships": false,
+    "items": [
+      // see getRequest
+    ],
+    "packages": [
+      // see getRequest 
+    ],
+    "optional_services": [
+      // see getRequest  
+    ],
     "skuInformationNeeded": [
         "somekindathinga",
         "something-else"
+        /**
+        * These two SKUs show here because this request is the first time the Marksman
+        * system has seen them. It indicates you may need to provide more information
+        * about them, such as product name, dimensions, etc.
+        */
     ]
 },
 "error": null,
