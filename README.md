@@ -36,29 +36,142 @@ The second one is a sandbox version of our site recommended for help learning th
 
 ### Anatomy of an API Request
 
-Each request MUST have the following URL parameters:
+Requests to our API should be HTTP POST requests with the Content-Type set as application/json.
 
-**mrscAccessCode** - This is the Access Code given to you on our website.
+Each request must contain the following, with can appear in either the POST body or the URI:
 
-**timestamp** - The current UNIX timestamp at the time you created your request.*
+| Field          | Required     | Description                                                  |
+| -------------- | ------------ | ------------------------------------------------------------ |
+| mrscAccessCode | Always       | Identifies what account your are accessing. This should be the same as your account number on our website. |
+| section        | Always       | The "section" of our API you are accessing. These are outlined later in this document. |
+| action         | Always       | The "action" you want to peform.                             |
+| timestamp      | SigAuth*     | UNIX timestamp from your computer, adjusted for Eastern Standard Time |
+| signature      | SigAuth*     | SHA256 hmac of the request URI and timestamp using your Secret Key as the hmac key. |
+| Authentication | SimpleAuth** | Your Secret Key, as provided on the website when you activated API access. |
 
-**signature** - This is a sha256 hmac of the URI used in your request, using your secretKey as the key.
+<u>SigAuth</u>: These fields are required if you're using signature-based authentication
 
-**:  It is important to make sure your clock is accurate, or your API requests may be rejected.*
+<u>SimpleAuth</u>: This field is required if you're using the "Simple PSK Authentication"
+
+
+
+#### body
+
+The "body" of the request, which is where you will pass any additional options or data to the API.
+
+#### A typical example (listing all requests):
+
+URL: /api.php?mrscAccessCode=99999&timestamp=1529591310&signature=4f55235e68a0e944ea2602e42b1aa4d8bb2d1649c2c18a07ba9ed7784896307a
+
+```JSON
+{
+    "testMode": false,
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "ajax2",
+        "action": "getRequestList",        
+        "pageSize": 1
+    }
+}
+```
+
+(The above request is simply asking for the most recent request under the account). Here is an example response:
+
+```JSON
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-06-21T10:58:40-04:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "total_rows": "15484",
+        "columns": [
+            "Order Id",
+            "Order Placed",
+            "Last Updated",
+            "Request Type",
+            "Request Status",
+            "Account No",
+            "Items Processing",
+            "Total Items",
+            "Notes from Marksman",
+            "Packages",
+            "File Atachments"
+        ],
+        "rows": [
+            {
+                "id": "17479",
+                "Order Id": "PENDING-983-469-568-049",
+                "Order Placed": "2018-06-12 12:33:21",
+                "Last Updated": "",
+                "Request Type": "UNKNOWN",
+                "Request Status": "PENDING",
+                "Account No": "99999",
+                "Items Processing": "0",
+                "Total Items": "0",
+                "Notes from Customer": "",
+                "Notes from Marksman": "",
+                "Packages": "",
+                "attachment_ids": "",
+                "File Atachments": "",
+                "simple_request": ""
+            }
+        ],
+        "query_time": 0.175991,
+        "count_time": 0.218109
+    },
+    "error": null,
+    "query": "\/api.php?mrscAccessCode=99999&timestamp=1529593120&signature=f310fa1f1404d40507de149ca5df3fca988889ce06a09e79b2dd9279ee2c0fdd",
+    "method": "POST"
+}
+```
+
+
+
+### Authentication
+
+Our API offers two forms of authentication, one more secure than the other.
+
+#### Signature-based Authentication (Higher Security; Less Convenient)
+
+Signature based authorization uses your Secret Key, the current time, and the request URI to generate a signature. This is similar to how the Amazon MWS API performs authentication.
+
+The two primary security features of this method are:
+
+1. Your Secret Key is never transmitted across the network.
+2. Because each request's signature is based on the time the request was sent any intercepted requests cannot be "replayed" by a malicious actor.
+
+An example of how to generate this signature:
 
 Example:
 
-`$uri = '/api.php?mrscAccessCode=111777&timestamp=1484865559';`
+```PHP
+$currentTime = 1484865559; // UNIX timestamp
+$uri = '/api.php?mrscAccessCode=111777&timestamp='. $currentTime;
+$signature = hash_hmac('sha256', $uri, $secretKey);
+$uri .= '&signature='. $signature;
+```
 
-`$signature = hash_hmac('sha256',  ​$uri, $secretKey);`
+#### Simple PSK Authentication
 
-API requests should be POST requests with Content-Type: application/json.
+A simple, but less secure form of authentication is to simply include your Secret Key inside the request body as "Authentication".
+
+Here is an example:
+
+```JSON
+{	
+	"body": {
+        "Authentication": "...secret key here...",
+    	"section": "user",
+    	"action": "ping"
+     }
+}
+```
 
 ### Testing API Connection
 
 You can test API access by sending the following request:
-
-
 
 ```json
 {	
@@ -69,8 +182,6 @@ You can test API access by sending the following request:
 }
 ```
 You should receive a response like this:
-
-
 
 ```json
 {
@@ -85,51 +196,39 @@ You should receive a response like this:
   "method": "POST"
 }
 ```
-### Common Reponse Fields & Meanings:
+### Common Response Fields & Meanings:
 
-#### **status	**  
+| Field          | Meaning                                                      |
+| -------------- | ------------------------------------------------------------ |
+| status         | textual indication of whether your request succeeded or failed. Typically "**SUCCESS**" or "**FAILURE**" |
+| success        | Boolean **true** or **false**, representing success or failure. |
+| error          | On failure, this will include a string explaining what the problem is. |
+| timestamp      | The date and time according to our server, expressed in a subset of the ISO 8601 standard. Example: 2018-06-21T11:02:41-04:00 |
+| apiVersion     | The version of the API you are communication with. At the time of writing there is only one version. This will be used in the future to mitigate any compatibility issues between updates. |
+| mrscAccessCode | The account number under which your request was processed. This should always be your own account number unless you have used the Mimic-Account functionality to access a sub-account (this feature is not currently accessible to most customers). |
+| message        | A JSON object containing the results of your request. The exact format of the data within will depend on the API *section* and *action* you have called. |
 
-​	textual indication of whether your request succeeded or failed
 
-#### **apiVersion	**
 
-​	The version of the API you are communicating with. At this time, there is only one version
+# API Sections Overview
 
-#### **timestamp	**
+Our API is divided into several sections as follows:
 
-​	The time your request was received and processed on our end.
+| Section  | General Usage                                                |
+| -------- | ------------------------------------------------------------ |
+| item     | Check status of inventory, pull detailed information about specific products, register and update product template/SKU information. |
+| request  | Place incoming or outgoing requests, list requests and statuses, check for new requests/shipments |
+| shipping | Purchase shipping labels                                     |
+| user     | Various account-related information and functions            |
+| ajax2    | This API section is used for many of the pages on our website and can be used to access some detailed reports or information in more flexible ways than other API sections. This section is still a work in progress. |
 
-#### **mrscAccessCode	**
 
-​	This is mrscAccessCode of the user whom you are authenticated as.
 
-At this time there is no direct use for this, but in the future users will be able to grant developers access to their accounts, similar to how Amazon's MWS API allows.
 
-#### **success**
 
-​	Will be boolean **true** or **false**, indicating the success of your request.
 
-#### **message**
 
-​	This will contain either text or a JSON object, depending on what API section and action you requested.
 
-​	This is the field typically populated by query results.
-
-#### **error**
-
-​	If an error is encountered a textual description of the error will be indicated here.
-
-#### **query**
-
-​	This is a copy of your request URI and query string for reference purposes
-
-#### **method**
-
-​	This is the HTTP request method used for your request
-
-# API Sections
-
-Our API is divided into several sections, as follows:
 
 ## Item
 
@@ -927,7 +1026,13 @@ Must specify one of the other:
 | attachments         | Array of attached files                                      |
 | optional_services   | Array of optional_services for the request.                  |
 
+### getRequestByTrackingNumber
 
+Locate and return a request based on the tracking number of an associated package.
+
+This action takes only one parameter: **tracking_number**
+
+The response is the same as getRequest.
 
 ### makeRequest
 
@@ -1328,7 +1433,7 @@ The response to a successfully created request looks like this:
           "fullService": "0",
           "Condition_Id": "16",
           "Condition_Name": "New",
-          "Condition_Description": "A brand-new, unused, unopened item in its original packaging, with all original packaging materials$
+          "Condition_Description": "A brand-new, unused, unopened item in its original packaging, with all original packaging materials",
           "Condition_Final": "1",
           "Approval_Required": "0",
           "consignment_modifier": "0.00",
@@ -1359,7 +1464,7 @@ If you attempt to create an outbound shipment which includes items unavailable f
 "query": "\/api.php\/?section=request&action=createShipment&comment=Please+place+fliers+with+my+logo+inside+all+packages.+Testing+update.&mrscAccessCode=20025&timestamp=1485371989&signature=c318e4ff06998417449c24277fc195149f7ace2d0777fd073f7252255be79d92",
 "method": "POST"
 ```
-## Shipping
+## shipping
 
 Shipping allows you to get shipping rates, purchase shipping labels, and check status of packages. We use GoShippo as our backend provider for labels. Using our shipping API you can take advantage of our discounted FedEx and USPS rates.
 
@@ -1584,24 +1689,16 @@ This action allows you to purchase a shipping rate you've received through **get
 
 **Optional Parameter**: request_id
 
-If you pass request_id and it matches the internal id of an already existing OUTGOING shipment (created through the website or with **createShipment** the purchased label will be automatically attached to that request).
+If you pass request_id and it matches the internal id of an already existing OUTGOING request (created through the website or with **createShipment** the purchased label will be automatically attached to that request).
 
 ```json
 "action": "purchase",
 "mrscAccessCode": "20025",
 "rates": [
-    {
-        "object_state": "VALID",
+    {       
         "object_id": "b1066812c6b341d8a56722b96358d6ae",
-        "provider": "USPS",
-        "provider_image": "https:\/\/shippo-static.s3.amazonaws.com\/providers\/75\/USPS.png",
-        "servicelevel_name": "Priority Mail",
-        "days": 2,
-        "arrives_by": null,
-        "duration_terms": "Delivery within 1, 2,\u00a0or 3 days\u00a0based on where your package started and where it\u2019s being sent.",
-        "amount": "7.00",
-        "signature": "8be5fedb092b6bea7134c468f2b799d364783b05c8d5c42af1dbec66cdc8580f",
-        "shipment_id": 74
+        "shipment_id": 74,
+        "request_id": 1337
     }
 ]
 ```
@@ -1633,7 +1730,7 @@ You can use the **file_id** to associate the shipping label with a request in ou
 
 Your shipping label is also automatically saved under Your Account -> Your Files on our website. You can download it through your web browser.
 
-## User
+## user
 
 User section allows access to various billing functionality, reports, uploaded files, and other things that don't directly fit in another section.
 
@@ -1641,9 +1738,278 @@ User section allows access to various billing functionality, reports, uploaded f
 
 This action takes no parameters. It simply generates am empty response to verify the API endpoint is live and that you are successfully authenticated.
 
+### basicInfo
+
+Returns some basic info about an account, including contact information, balance, storage allocation, etc.
+
+Example response:
+
+```json
+"message": {
+        "accountNo": "99999",
+        "email": "it@marksmanrsc.com",
+        "first_name": "Jason",
+        "last_name": "Thistlethwaite",
+        "phone": null,
+        "balance": "985.61",
+        "maxLabelPrice": "4000",
+        "warehouseFee": "45",
+        "simpleRequests": true,
+        "allocatedStorage": "20",
+        "allocatedLongTermStorage": "5"
+    }
+```
+
+| Field                    | Meaning                                                      |
+| ------------------------ | ------------------------------------------------------------ |
+| accountNo                | Account number of the account                                |
+| email                    | Primary contact email for the account                        |
+| first_name               | First name of primary account holder                         |
+| last_name                | Last name of primary account holder                          |
+| phone                    | Phone number of primary account holder                       |
+| balance                  | Current deposit balance in USD                               |
+| maxLabelPrice            | Maximum price of a single shipping label customer can purchase, expressed in cents (USD) |
+| warehouseFee             | Standard monthly storage fee for customer (by CuFT) expressed in cents USD. |
+| simpleRequests           | Boolean **true** or **false**; whether or not Simple Requests is activated for the customer. |
+| allocatedStorage         | Dedicated short-term storage space allocated to customer, measured in cubic feet |
+| allocatedLongTermStorage | Dedicated long-term storage space allocated to customer, measured in cubic feet. The definition of "long term storage" changes periodically with business needs, but is typically defined as anything stored for more than 90 days. |
+
+
+
 ### billUser [internal]
 
 This is an internal API function used to apply fees or refunds to accounts.
+
+### getFile
+
+Download a file just as a browser would (server side will set file name, size, and type through HTTP headers).
+
+The only parameter this action takes is **file_id**, which should be the database id of the file as referenced in other API sections (for example ajax2 -> getRequestList attachment_id).
+
+### getFileInline
+
+Works the same way as getFile, except the file is base64-encoded and returned as a string in a response like this:
+
+```json
+message: {
+    [
+        "filename": "name of the file",
+        "size": 900012,
+        "type": "image/jpeg",
+        "base64": "....base64 encoded file..."
+    ]
+}
+```
+
+Future plans include adding support for multiple file_id's to download multiple files at once.
+
+## ajax2
+
+This is a newer section to our API that's used for many of the interactive displays on our website. You can access this API section for various reports and information listings.
+
+### Special Parameters
+
+This section of the API allows for some special parameters for filtering and sorting results. They work as follows:
+
+| Parameter | Type                      | Description                                                  |
+| --------- | ------------------------- | ------------------------------------------------------------ |
+| page      | int                       | Which page of results to display                             |
+| pageSize  | int / mixed               | Number of results to return per page. Special value "all"  is allowed, but excessive usage may result in throttling. |
+| filter    | array (numerical indexed) | filter returned results by column                            |
+
+### Response Format
+
+The response format of this section varies slightly from the other API sections. The same "envelope" is used, but the message will be structured like this:
+
+```json
+"message": {
+        "total_rows": "2",
+        "columns": [
+        ],
+        "rows": [
+            {
+            },
+            {
+            }
+        ],
+        "query_time": 0.177531,
+        "count_time": 0.079640
+    }
+```
+
+| Section    | Meaning                                                      |
+| ---------- | ------------------------------------------------------------ |
+| total_rows | The total number of available results                        |
+| columns    | An array of "display names" for the columns in each record. This is what the name of the column would be if displayed in a table on our website. **This is also the list of columns to which you can apply filters.** |
+| rows       | An array of objects, with each object being a record matching your query |
+| query_time | Total time (in seconds) it took to execute your query        |
+| count_time | Total time (in seconds) it took to total the number of results available |
+
+### Using Filters
+
+Filters are a numerically indexed array of fuzzy matches to apply to columns. The numerical index is based on the column's position in the "columns" section of the API response.
+
+This is an example of how they work:
+
+```JSON
+{
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "ajax2",
+        "action": "getRequestList",
+        "pageSize": 10,
+        "filter": {
+            "0": "916-125",
+            "2": "2017"
+        }
+    }
+}
+```
+
+The above uses the getRequestList action to list requests which contain "916-125" in the Order Id and were last updated in 2017.
+
+This example searches for requests including the tracking number "1Z8921550309768308":
+
+```JSON
+{    
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "ajax2",
+        "action": "getRequestList",
+        "pageSize": 1,
+        "filter": {
+            "9": "1Z8921550309768308"
+        }
+    }
+}
+```
+
+### Actions
+
+#### getRequestList - Get list of all requests for your account
+
+##### Filterable Columns:
+
+| Column Index | Name                | Type of Information                                          |
+| ------------ | ------------------- | ------------------------------------------------------------ |
+| 0            | Order Id            | Order Id of the request                                      |
+| 1            | Order Placed        | Creation date of the order in YYYY-MM-DD hh:mm:ss format     |
+| 2            | Last Updated        | Date and time status, comment, or item quantity of the request was changed in YYYY-MM-DD hh:mm:ss format. |
+| 3            | Request Type        | The type of request. See the section on Request Types for more information |
+| 4            | Request Status      | The status of the request. See the section on Request Status for more information |
+| 5            | Account No          | Account No of the user who owns/created the request.         |
+| 6            | Items Processing    | The meaning of this can change based on the Request Type. For OUTGOING requests, this is the number of items which have been processed and packed. For any other type of request this is how many items were actually marked received. |
+| 7            | Total Items         | Total number of items (expected) to be in the request.       |
+| 8            | Notes from Customer | Textual notes about the request, provided by Customer when the request was placed. |
+| 9            | Notes from Marksman | Textual notes about the request, provided by Marksman        |
+| 10           | Packages            | A comma-delimited list of tracking numbers associated with the request |
+| 11           | File Attachments    | A comma-delimited list of any file attachments associated with the request |
+
+##### Row Data
+
+The **rows** section of the response will contain an array of objects representing each of the above columns. There are also 3 other fields returned:
+
+| Field          | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| id             | The internal database id of the request. This can be used to reference the request in other sections of the API. |
+| attachment_ids | A comma-delimited list of the database id's of attachments associated with the request. These id's can be used to download or reference the attachments in other sections of the API. |
+| simple_request | Either "0" or "1", indicating whether the request was created as a Simple Request. |
+
+##### Special Subsets
+
+You can request a few special subsets of requests from getRequestList by specifying the parameter "specialType" in the request.
+
+| Special Type | Purpose                                                      |
+| ------------ | ------------------------------------------------------------ |
+| INCOMING     | Will display only requests sent to Marksman which are not in an error status. |
+| OUTBOUND     | Will display requests shipped or shipping from Marksman      |
+| ABNORMAL     | Requests where some abnormal situation has occurred which may require human attention. |
+| STUCK        | Requests in the process of shipping from Marksman which cannot be completed for some reason. Generally, the "Notes from Marksman" will detail the reason. |
+| AUTOREQUEST  | Requests received as "AUTOREQUEST" which still have not been resolved. |
+| SIMPLE       | Simple Requests which have not yet been processed. For requests of type "PREP" no customer-action is required. Other request types may require customer-action. |
+
+#### getRequestCounts
+
+Returns a list of each of the "specialTypes" used within getRequestList and the number of requests of each type. Example:
+
+```json
+"message": {
+        "INCOMING": 5496,
+        "OUTBOUND": 8150,
+        "ABNORMAL": 1940,
+        "STUCK": 3,
+        "AUTOREQUEST": 413,
+        "SIMPLE": 4,
+        "ALL": 15484
+    }
+```
+
+#### agingInventory -- Display inventory in stock for more than a period of time
+
+This action provides an overview of inventory based on the space it occupies in our warehouse and how long it has been stored with us. By default, this action lists inventory which has been in storage for 3 or more months (but this is configurable; see the Months Parameter below).
+
+##### Filterable Columns:
+
+| Column Index | Name              | Type of Information                                          |
+| ------------ | ----------------- | ------------------------------------------------------------ |
+| 0            | Checkbox          | Has no use in context of the API                             |
+| 1            | Account No        | Account who owns the product                                 |
+| 2            | ASIN              | ASIN of the product                                          |
+| 3            | SKU               | Merchant-provided SKU for product (where available)          |
+| 4            | Title             | Title of the product (as would be displayed on Amazon or eBay) |
+| 5            | Condition         | Textual description of product condition                     |
+| 6            | Category          | Marksman category for product (used for billing purposes for returns) |
+| 7            | Quantity          | Quantity of the item in storage                              |
+| 8            | Avg Months Stored | How many months, on average, this item in this condition is stored before leaving Marksman. |
+| 9            | Min Months        | Minimum number of months any current unit of this stock has been stored. |
+| 10           | Max Months        | Max number of months any current unit of this stock has been stored. |
+| 11           | CuFt              | Total Cubic Feet of storage place occupied by this stock.    |
+| 12           | Details           | Unused by the API.                                           |
+
+##### Row Data
+
+Three additional fields are returned with each result:
+
+| Field        | Meaning                                          |
+| ------------ | ------------------------------------------------ |
+| product_id   | Database id of the product template.             |
+| condition_id | Numeric representation of item condition.        |
+| user_id      | Database id of the customer who owns the product |
+
+
+
+##### Example Response:
+
+```json
+[
+    {
+                "Checkbox": "0",
+                "Account No": "99999",
+                "ASIN": "B00SXX975K",
+                "SKU": "",
+                "Title": "Toshiba Satellite C55D-B5308 15.6-Inch Laptop (AMD E1-Series, 4GB Memory, 500GB Hard Drive) Jet Black",
+                "Condition": "Used - Very Good",
+                "Category": "Laptops",
+                "Quantity": "1",
+                "Avg Months Stored": "29.0",
+                "Min Months": "29",
+                "Max Months": "29",
+                "CuFt": "0.30",
+                "product_id": "787",
+                "condition_id": "14",
+                "user_id": "3",
+                "Details": "0"
+            }
+]
+```
+
+##### Months Parameter
+
+The special parameters "months" can be passed in the request body to adjust the behavior of this action. Setting a value of 0 should display all finalized/shippable inventory in storage.
+
+
+
+
 
 # Appendix
 
