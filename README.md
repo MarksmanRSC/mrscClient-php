@@ -1468,6 +1468,8 @@ If you attempt to create an outbound shipment which includes items unavailable f
 
 Shipping allows you to get shipping rates, purchase shipping labels, and check status of packages. We use GoShippo as our backend provider for labels. Using our shipping API you can take advantage of our discounted FedEx and USPS rates.
 
+
+
 ### getRates
 
 Call this to set up a shipment and get available rates.
@@ -1729,6 +1731,240 @@ The message portion of the response will include an array of objects each detail
 You can use the **file_id** to associate the shipping label with a request in our system, or download it through the **user** API section with the action **getFile**.
 
 Your shipping label is also automatically saved under Your Account -> Your Files on our website. You can download it through your web browser.
+
+### upsMiPurchase
+
+Used to purchase UPS Mail Innovations in bulk. This will schedule a batch purchase of labels which can be downloaded at a later time.
+
+Before using this API action it is important to understand the overall workflow:
+
+1. You will send a purchase request using upsMiPurchase. This will schedule a batch label purchase in our system.
+2. When you schedule a batch purchase our system will generate a "batch_id". This is the reference number for your purchase.
+3. You will need to check our system periodically using checkShippingBatch. You will pass the batch_id.
+4. checkShippingBatch will tell you if your batch is complete and if it contained any errors.
+5. Once your batch is complete, you will be need to use getFile or getFileInline to download your labels.
+6. The labels are provided in the format requested, inside of a zip file. The contained files will each be named using this convention:
+   1. *package_id*_*tracking_number*.*format_extension*. For example, a label for package_id "678678676" in GIF format would be named 678678676_trackingNumberHere.gif
+
+In general, our system can process about 2 UPS Mail Innovations per second. If you 
+
+#### Parameters
+
+upsMiPurchase takes the following parameters:
+
+| Parameter | Required | Meaning                                                      |
+| --------- | -------- | ------------------------------------------------------------ |
+| mode      | No       | Either "test" or "purchase". Defaults to "test".             |
+| format    | No       | One of "GIF", "EPL", or "ZPL". Defaults to "GIF".            |
+| orders    | Yes      | Array of objects, each describing a shipment. See below for parameters. |
+
+#### orders Parameters
+
+Each member of "orders" uses the following fields:
+
+| Field        | Type         | Meaning                                                      |
+| ------------ | ------------ | ------------------------------------------------------------ |
+| package_id   | string       | A unique reference number or order id for the shipment. If left blank our system generates one automatically. May not contain any spaces or special characters. |
+| to_name      | string       | Name of the recipient                                        |
+| to_addr1     | string       | Street address of recipient                                  |
+| to_addr2     | string\|null | Apartment or building number                                 |
+| to_city      | string       | Destination city                                             |
+| to_state     | string       | 2-character alphabetically code for destination state. Example: OH for Ohio. See here for a list: https://www.ups.com/worldshiphelp/WS16/ENU/AppHelp/Codes/State_Province_Codes.htm |
+| to_code      | string       | 5 digit "zip code" for destination                           |
+| weight       | float        | Weight of package                                            |
+| weight_unit  | enum         | Must be either "OZS" for ounces or "LBS" for pounds.         |
+| length       | float        | Longest dimension of the package                             |
+| width        | float        | Middle dimension of the package                              |
+| height       | float        | Shortest dimension of the package                            |
+| service      | enum         | Selects the type of service for the package. Valid codes are "M4" (for most packages), "M3" for Priority Mail, and "M2" for First Class Mail. |
+| packing_type | enum         | Describes the characteristics of the package being shipped.  |
+|              |              |                                                              |
+
+#### Example
+
+Here is an example of the workflow to purchase UPS Mail Innovations labels:
+
+**Purchase Request:**
+
+```json
+{
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "shipping",
+        "action": "upsMiPurchase",
+        "orders": [
+            {
+                "package_id": "45",
+                "to_name": "Jason",
+                "to_addr1": "1726 Viking Ave",
+                "to_addr2": null,
+                "to_city": "Orrville",
+                "to_state": "OH",
+                "to_code": "44667",
+                "weight": "6",
+                "weight_unit": "OZS",
+                "length": 12,
+                "width": 2,
+                "height": 1,
+                "service": "M4",
+                "packing_type": "Irregulars"
+            },
+            {
+                "package_id": "",
+                "to_name": "Jason T",
+                "to_addr1": "1726 Viking Ave",
+                "to_addr2": null,
+                "to_city": "Orrville",
+                "to_state": "OH",
+                "to_code": "44667",
+                "weight": "6",
+                "weight_unit": "OZS",
+                "length": 12,
+                "width": 2,
+                "height": 1,
+                "service": "M4",
+                "packing_type": "Irregulars"
+            }
+        ]
+    }
+}
+```
+
+**Purchase Response:**
+
+```json
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-07-16T10:12:51-04:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "batch_id": 15
+    },
+    "error": null,
+    "query": "\/api.php?mrscAccessCode=99999&timestamp=1531750371&signature=73e97e25ee5880154cf54ad7ed7fa13350eaa744e518a3115afb2ce6c771c475",
+    "method": "POST"
+}
+```
+
+The batch_id will be used to check the status of the batch purchase, as shown below.
+
+```json
+{
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "shipping",
+        "action": "checkShippingBatch",
+        "batch_id": 15
+    }
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-07-16T10:15:43-04:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "id": "15",
+        "user_id": "1",
+        "schedule_date": "2018-07-16 10:12:51",
+        "zip_file_id": null,
+        "spreadsheet_id": "15082",
+        "mode": "test",
+        "format": "GIF",
+        "completed": false,
+        "in_progress": false,
+        "total_orders": "0",
+        "total_errors": "0",
+        "runtime": "0"
+    },
+    "error": null,
+    "query": "\/api.php?mrscAccessCode=99999&timestamp=1531750543&signature=09156bbee1c5962e1f2e19bd8cf0415ef3f2d5527f6ba877bb887370cb489d60",
+    "method": "POST"
+}
+```
+
+
+
+##### UPS Mail Innovations Packing Types
+
+The following packing types can be used with Mail Innovations. Selecting the correct packing type is very important, as selecting the wrong one may result in *very large* price differences and delivery times.
+
+Please check these two links for detailed information:
+
+http://www.upsmailinnovations.com/services/qualified.html
+
+http://www.upsmailinnovations.com/pdfs/UPSMI_Qualifying_Mail_Page.pdf
+
+| packing_type  | Min Weight | Max Weight | Description                                           |
+| ------------- | ---------- | ---------- | ----------------------------------------------------- |
+| First Class   |            |            | Same rules as USPS First Class. Must use service "M2" |
+| Priority      |            |            | Same rules as USPS Priority. Must use service "M3"    |
+| Machinables   | 6oz        | 15.99oz    |                                                       |
+| Irregulars    | 1oz        | 15.99oz    |                                                       |
+| Parcel Post   | 1lbs       | xxlbs      |                                                       |
+| BPM Parcel    | 1lb        | 15lbs      |                                                       |
+| Media Mail    | 1lb        | xxlbs      |                                                       |
+| BPM Flat      | 1oz        | 15.99oz    |                                                       |
+| Standard Flat | 1oz        | 15.99oz    |                                                       |
+
+### checkShippingBatch
+
+Use this API call to check the status of a batch label purchase and to download the labels. This is used with upsMuPurchase.
+
+The only parameter is batch_id, which is the batch_id returned by upsMiPurchase.
+
+| Field          | Meaning                                                      |
+| -------------- | ------------------------------------------------------------ |
+| id             | batch_id                                                     |
+| user_id        | user_id of the user who scheduled the batch purchase.        |
+| scheduled_date | Date and time (local to the API endpoint) the batch was scheduled. |
+| zip_file_id    | Id of the zip file containing labels. Can be passed to the **user** action **getFile** or **getFileInline** to download. |
+| spreadsheet_id | Id of the CSV file containing the shipments. Can be downloaded the same way as zip_file_id. Please note, if you placed your batch using the API our system will have created this file for you. |
+| mode           | Either "test" or "purchase". If "test", this means the labels are test labels and cannot be used for actual shipping. |
+| format         | One of "GIF", "EPL", or "ZPL", representing the format of the labels for this shipment. |
+| completed      | True or false. Changes to true once the batch has completed processing. |
+| in_progress    | True or false. Changes to true while the batch is being processed. Batches which remain "in_progress" for extended periods of time may indicate a system failure or serious errors in the shipments. |
+| total_orders   | Total number of orders processed. Will be "0" until the batch has been processed. |
+| total_errors   | Total number of shipments containing errors. This will be "0" until the batch has been processed. |
+| runtime        | Total time in seconds spent processing batch.                |
+
+Example Response:
+
+```json
+{
+    "status": "SUCCESS",
+    "apiVersion": "0.2",
+    "timestamp": "2018-07-16T10:21:04-04:00",
+    "mrscAccessCode": "99999",
+    "success": true,
+    "message": {
+        "id": "15",
+        "user_id": "1",
+        "schedule_date": "2018-07-16 10:12:51",
+        "zip_file_id": null,
+        "spreadsheet_id": "15082",
+        "mode": "test",
+        "format": "GIF",
+        "completed": false,
+        "in_progress": false,
+        "total_orders": "0",
+        "total_errors": "0",
+        "runtime": "0"
+    },
+    "error": null,
+    "query": "\/api.php?mrscAccessCode=99999&timestamp=1531750864&signature=2f2b0cd3c29c032f20c2a9ccc796e8a8b3e034f151a711dc584c41a88c15d523",
+    "method": "POST"
+}
+```
+
+
 
 ## user
 
