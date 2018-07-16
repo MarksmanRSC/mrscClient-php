@@ -2157,6 +2157,24 @@ This action is essentially the same as stockOverview, except the products are fu
 | request_type   | 15           | Same meaning as in getRequest                                |
 | request_status | 16           | Same meaning as in getRequest                                |
 
+##### Example: Get all inventory received for PREP which is ready to ship:
+
+```json
+{
+    "mrscAccessCode": "99999",
+    "body": {
+        "section": "ajax2",
+        "action": "stockOverviewByRequest",
+        "pageSize": "all",
+        "filter": {
+            "6": "New",
+            "15": "PREP"
+        }
+    }
+}
+
+```
+
 
 
 #### getRequestList - Get list of all requests for your account
