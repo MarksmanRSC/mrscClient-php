@@ -1725,9 +1725,9 @@ Each rate object has the following fields:
         "object_id": "b1066812c6b341d8a56722b96358d6ae",
         "shipment_id": 74,
         "request_id": 1337
-    },
- "includeLabel": true
-]
+    }
+],
+"includeLabel": true
 ```
 A successful purchase will look like this:
 
