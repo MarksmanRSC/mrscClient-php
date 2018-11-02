@@ -1524,7 +1524,7 @@ Call this to set up a shipment and get available rates.
 
 Both of these parameters are required and require the same data. None of these fields can be left blank (this is a temporary limitation on our backend).
 
-The fields should be self-explanatory aside from **email** and **phone.** You must provide an email address and a phone number to contact in the event of delivery problems. This is for the carrier to call you our your recipient about delivery issues.
+The fields should be self-explanatory aside from **email** and **phone.** You must provide an email address and a phone number to contact in the event of delivery problems. This is for the carrier to call you or your recipient about delivery issues.
 
 If you do not provide this information it will be auto-completed using the email address and phone number you have on file with us. You can locate and update this information on our website by going to Your Account -> Update Your Account.
 
@@ -1685,13 +1685,37 @@ This is our internal signature of the rate.
 
 This is used for our internal processes
 
+#### DHL eCommerce Rates
+
+Our API supports DHL eCommerce shipping labels. However, this service is not available until it has been activated for your account.
+
+Using DHL eCommerce has several additional (non-technical) requirements:
+
+1. DHL eCommerce labels are only valid when applied to packages picked up from our facility.
+2. The Sender address must be our facility.
+3. The DHL eCommerce API does not have rating support. This means the rate will always display as 0.00 dollars.
+   1. DHL eCommerce labels are billed after the packages are delivered.
+   2. Upon request, we can provide you with detailed rate tables.
+
 ### purchase
 
 This action allows you to purchase a shipping rate you've received through **getRates**. You simply pass an array of rates you wish to purchase. You do not need to provide an address or other information, as this is stored via the **shipment_id** parameter.
 
-**Optional Parameter**: request_id
+| Field        | type                           | Meaning                                                      |
+| ------------ | ------------------------------ | ------------------------------------------------------------ |
+| rates        | Array of rate objects          | Each rate represents a purchase                              |
+| includeLabel | Bool (optional; default false) | If true, the response will include base64-encoding copies of the shipping labels. |
+|              |                                |                                                              |
 
-If you pass request_id and it matches the internal id of an already existing OUTGOING request (created through the website or with **createShipment** the purchased label will be automatically attached to that request).
+#### Rate Objects
+
+Each rate object has the following fields:
+
+| field       | type           | meaning                                                      |
+| ----------- | -------------- | ------------------------------------------------------------ |
+| object_id   | String         | object_id returned from getRates(), representing the rate and service you want to purchase. |
+| request_id  | Int (optional) | If provided and matches the id of an existing OUTGOING request (created through website or with createShipment the purchased label will be automatically attached to that request)<br /><br />Highly recommended when using our services for fulfillment. |
+| shipment_id | Int (optional) | This field reference which shipment you want to purchase shipment for. *Currently* this field is not required. |
 
 ```json
 "action": "purchase",
@@ -1701,7 +1725,8 @@ If you pass request_id and it matches the internal id of an already existing OUT
         "object_id": "b1066812c6b341d8a56722b96358d6ae",
         "shipment_id": 74,
         "request_id": 1337
-    }
+    },
+ "includeLabel": true
 ]
 ```
 A successful purchase will look like this:
@@ -1719,7 +1744,9 @@ A successful purchase will look like this:
         "status": "SUCCESS",
         "tracking_number": "9205590164917308211689",
         "total": "7.00",
-        "file_id": 3195
+        "file_id": 3195,
+        "base64": '.....',
+        "filename": "shipping_label-9205590164917308211689.pdf"
     }
 ],
 "error": null,
